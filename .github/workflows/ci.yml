@@ -1,4 +1,4 @@
-name: CI - Build and Size Check
+name: builds-and-under-13kb
 
 on:
   push:
@@ -14,29 +14,27 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Install Rust
-      uses: actions-rs/toolchain@v1
+      uses: dtolnay/rust-toolchain@stable
       with:
-        toolchain: stable
-        target: wasm32-unknown-unknown
-        override: true
+        targets: wasm32-unknown-unknown
     
     - name: Cache cargo registry
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cargo/registry
         key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
     
     - name: Cache cargo index
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cargo/git
         key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
     
     - name: Cache cargo build
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: target
         key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
@@ -46,9 +44,10 @@ jobs:
         cargo build --release --target wasm32-unknown-unknown
         cp target/wasm32-unknown-unknown/release/js13k_invaders.wasm g.wasm
     
-    - name: Install wasm-opt
+    - name: Install wasm-opt from binaryen
       run: |
-        npm install -g wasm-opt
+        curl -L https://github.com/WebAssembly/binaryen/releases/download/version_118/binaryen-version_118-x86_64-linux.tar.gz | tar xz
+        sudo cp binaryen-version_118/bin/wasm-opt /usr/local/bin/
     
     - name: Optimize WASM
       run: |
@@ -107,7 +106,7 @@ jobs:
         fi
     
     - name: Upload submission artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success()
       with:
         name: js13k-submission
