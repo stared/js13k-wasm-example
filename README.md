@@ -1,16 +1,18 @@
 # JS13K Space Invaders - Rust/WASM Edition 🎮
 
-[![builds-and-under-13kb](https://github.com/pmigdal/js13k-invaders/actions/workflows/ci.yml/badge.svg)](https://github.com/pmigdal/js13k-invaders/actions/workflows/ci.yml)
+[![builds-and-under-13kb](https://github.com/stared/js13k-wasm-example/actions/workflows/ci.yml/badge.svg)](https://github.com/stared/js13k-wasm-example/actions/workflows/ci.yml)
 
 A minimal Space Invaders clone for [js13kGames](https://js13kgames.com/) competition, written in Rust and compiled to WebAssembly.
+
+📦 **Repository:** [github.com/stared/js13k-wasm-example](https://github.com/stared/js13k-wasm-example)
 
 **Current size: 3,903 bytes** (zipped) - only 29% of the 13KB limit! 🎯
 
 ## 🎯 WarsawJS Meetup #129
 
-This project is a demo for the WarsawJS talk:
+This project is a demo for the [WarsawJS](https://warsawjs.com/) talk:
 - **Date:** 2025-08-13
-- **Speaker:** dr Piotr Migdał
+- **Speaker:** [dr Piotr Migdał](https://p.migdal.pl/)
 - **Title:** "Thanks to AI, you can WASM. Yes, even in Rust!"
 
 > AI is reshaping frontend development. It's no longer just about simplifying tedious tasks; it's about unlocking new superpowers. With a few well-crafted prompts, you can use WebAssembly and Rust with ease—no prior experience required. Your next WASM-powered 3D data visualization, award-winning hackathon game, or interactive zen simulation is now just a few prompts away!
