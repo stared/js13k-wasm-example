@@ -1,3 +1,5 @@
+// JS13K Space Invaders - Rust/WASM implementation
+// Size optimization: no_std to avoid standard library overhead (~100KB)
 #![no_std]
 extern crate alloc;
 use alloc::vec::Vec;
@@ -5,28 +7,33 @@ use alloc::vec;
 use core::panic::PanicInfo;
 use core::clone::Clone;
 
+// Custom panic handler - required for no_std
+// Size optimization: Simple loop instead of unwinding (~5KB saved)
 #[panic_handler]
 fn panic(_: &PanicInfo) -> ! {
     loop {}
 }
 
+// Size optimization: wee_alloc is ~1KB vs default allocator ~10KB
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-const WIDTH: usize = 400;
-const HEIGHT: usize = 300;
-const SCALE: usize = 10;
+// Game constants
+const WIDTH: usize = 400;   // Canvas width in pixels
+const HEIGHT: usize = 300;  // Canvas height in pixels
+const SCALE: usize = 10;    // Unused - kept for future scaling
 
+// Game state - kept minimal for size
 struct Game {
-    player_x: i32,
-    enemies: Vec<(i32, i32, bool)>,
-    enemy_dx: i32,
-    bullets: Vec<(i32, i32)>,
-    enemy_bullets: Vec<(i32, i32)>,
-    score: u32,
-    game_over: bool,
-    tick: u32,
-    screen: Vec<u8>,
+    player_x: i32,                      // Player horizontal position
+    enemies: Vec<(i32, i32, bool)>,     // (x, y, alive) for each enemy
+    enemy_dx: i32,                      // Enemy movement direction
+    bullets: Vec<(i32, i32)>,           // Player bullets (x, y)
+    enemy_bullets: Vec<(i32, i32)>,     // Enemy bullets (x, y)
+    score: u32,                         // Current score
+    game_over: bool,                    // Game state flag
+    tick: u32,                          // Frame counter for timing
+    screen: Vec<u8>,                    // RGBA pixel buffer (WIDTH*HEIGHT*4)
 }
 
 impl Game {
@@ -238,7 +245,11 @@ impl Game {
     }
 }
 
+// Global game instance - required for WASM/JS interop
 static mut GAME: Option<Game> = None;
+
+// WASM exports - these functions are called from JavaScript
+// #[no_mangle] prevents Rust from changing function names
 
 #[no_mangle]
 pub extern "C" fn init() {
@@ -249,6 +260,7 @@ pub extern "C" fn init() {
 
 #[no_mangle]
 pub extern "C" fn tick(keys: u8) {
+    // Keys are bitflags: bit 0 = left, bit 1 = right, bit 2 = shoot
     unsafe {
         if let Some(game) = &mut GAME {
             game.update(keys);
@@ -259,6 +271,8 @@ pub extern "C" fn tick(keys: u8) {
 
 #[no_mangle]
 pub extern "C" fn render() -> *const u8 {
+    // Returns pointer to pixel buffer for direct JS access
+    // This avoids serialization overhead
     unsafe {
         if let Some(game) = &GAME {
             game.screen.as_ptr()

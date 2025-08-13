@@ -4,32 +4,36 @@
 <meta charset="utf-8">
 <title>JS13K</title>
 <style>
+/* Minimal CSS - every byte counts for js13k! */
 body{margin:0;padding:0;background:#000;overflow:hidden}
-canvas{image-rendering:pixelated}
+canvas{image-rendering:pixelated} /* Crisp pixel art rendering */
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <script>
+// Minimal JS glue code for WASM (~400 bytes)
+// Size optimization: Single-letter variables, no frameworks
 (async()=>{
-let k=0;
+let k=0; // Keyboard state as bitflags
 const r=await fetch('g.wasm');
 const {instance:{exports:e}}=await WebAssembly.instantiate(await r.arrayBuffer());
-e.init();
+e.init(); // Initialize game in WASM
 const c=document.getElementById('c');
 c.width=400;
 c.height=300;
 const ctx=c.getContext('2d');
-const d=ctx.createImageData(400,300);
+const d=ctx.createImageData(400,300); // Reusable image buffer
+// Keyboard handling with bitflags: left=1, right=2, shoot=4
 document.onkeydown=v=>{if(v.key=='ArrowLeft')k|=1;if(v.key=='ArrowRight')k|=2;if(v.key==' ')k|=4};
 document.onkeyup=v=>{if(v.key=='ArrowLeft')k&=~1;if(v.key=='ArrowRight')k&=~2;if(v.key==' ')k&=~4};
-const l=()=>{
-e.tick(k);
-const p=e.render();
-const m=new Uint8Array(e.memory.buffer,p,480000);
-for(let i=0;i<480000;i++)d.data[i]=m[i];
-ctx.putImageData(d,0,0);
-requestAnimationFrame(l);
+const l=()=>{ // Game loop
+e.tick(k); // Update game state
+const p=e.render(); // Get pixel buffer pointer
+const m=new Uint8Array(e.memory.buffer,p,480000); // Direct memory access (400*300*4)
+for(let i=0;i<480000;i++)d.data[i]=m[i]; // Copy pixels
+ctx.putImageData(d,0,0); // Draw to canvas
+requestAnimationFrame(l); // 60 FPS
 };
 l();
 })();
