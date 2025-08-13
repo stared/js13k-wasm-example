@@ -51,7 +51,7 @@ jobs:
     
     - name: Optimize WASM
       run: |
-        wasm-opt -Oz g.wasm -o g_optimized.wasm
+        wasm-opt -Oz --enable-bulk-memory g.wasm -o g_optimized.wasm
         mv g_optimized.wasm g.wasm
     
     - name: Create submission zip

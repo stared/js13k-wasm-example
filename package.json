@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "cargo build --release --target wasm32-unknown-unknown && cp target/wasm32-unknown-unknown/release/js13k_invaders.wasm g.wasm",
-    "build:opt": "pnpm build && wasm-opt -Oz g.wasm -o g.wasm",
+    "build:opt": "pnpm build && wasm-opt -Oz --enable-bulk-memory g.wasm -o g.wasm",
     "size": "pnpm build && zip -9 submission.zip index.html g.wasm && stat -f%z submission.zip || stat -c%s submission.zip",
     "serve": "pnpx serve ."
   },
