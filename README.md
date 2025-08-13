@@ -1,5 +1,7 @@
 # JS13K Space Invaders - Rust/WASM Edition 🎮
 
+[![CI - Build and Size Check](https://github.com/pmigdal/js13k-invaders/actions/workflows/ci.yml/badge.svg)](https://github.com/pmigdal/js13k-invaders/actions/workflows/ci.yml)
+
 A minimal Space Invaders clone for [js13kGames](https://js13kgames.com/) competition, written in Rust and compiled to WebAssembly.
 
 **Current size: 3,903 bytes** (zipped) - only 29% of the 13KB limit! 🎯

@@ -1,0 +1,126 @@
+name: CI - Build and Size Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-and-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        target: wasm32-unknown-unknown
+        override: true
+    
+    - name: Cache cargo registry
+      uses: actions/cache@v3
+      with:
+        path: ~/.cargo/registry
+        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+    
+    - name: Cache cargo index
+      uses: actions/cache@v3
+      with:
+        path: ~/.cargo/git
+        key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+    
+    - name: Cache cargo build
+      uses: actions/cache@v3
+      with:
+        path: target
+        key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+    
+    - name: Build WASM
+      run: |
+        cargo build --release --target wasm32-unknown-unknown
+        cp target/wasm32-unknown-unknown/release/js13k_invaders.wasm g.wasm
+    
+    - name: Install wasm-opt
+      run: |
+        npm install -g wasm-opt
+    
+    - name: Optimize WASM
+      run: |
+        wasm-opt -Oz g.wasm -o g_optimized.wasm
+        mv g_optimized.wasm g.wasm
+    
+    - name: Create submission zip
+      run: |
+        zip -9 submission.zip index.html g.wasm
+    
+    - name: Check submission size
+      run: |
+        SIZE=$(stat -c%s submission.zip)
+        SIZE_KB=$(echo "scale=2; $SIZE / 1024" | bc)
+        LIMIT=13312  # 13KB in bytes
+        
+        echo "::notice title=Submission Size::${SIZE} bytes (${SIZE_KB} KB)"
+        
+        if [ $SIZE -le $LIMIT ]; then
+          REMAINING=$((LIMIT - SIZE))
+          REMAINING_KB=$(echo "scale=2; $REMAINING / 1024" | bc)
+          PERCENTAGE=$((SIZE * 100 / LIMIT))
+          echo "✅ PASS - Within 13KB limit!"
+          echo "Size: ${SIZE} bytes (${SIZE_KB} KB)"
+          echo "Limit: ${LIMIT} bytes (13.00 KB)"
+          echo "Remaining: ${REMAINING} bytes (${REMAINING_KB} KB)"
+          echo "Usage: ${PERCENTAGE}% of limit"
+          
+          # Create summary
+          echo "## ✅ Size Check Passed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Size | ${SIZE} bytes (${SIZE_KB} KB) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Limit | 13,312 bytes (13.00 KB) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Remaining | ${REMAINING} bytes (${REMAINING_KB} KB) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Usage | ${PERCENTAGE}% |" >> $GITHUB_STEP_SUMMARY
+        else
+          OVER=$((SIZE - LIMIT))
+          OVER_KB=$(echo "scale=2; $OVER / 1024" | bc)
+          echo "❌ FAIL - Over 13KB limit!"
+          echo "Size: ${SIZE} bytes (${SIZE_KB} KB)"
+          echo "Limit: ${LIMIT} bytes (13.00 KB)"
+          echo "Over by: ${OVER} bytes (${OVER_KB} KB)"
+          
+          # Create summary
+          echo "## ❌ Size Check Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Size | ${SIZE} bytes (${SIZE_KB} KB) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Limit | 13,312 bytes (13.00 KB) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Over by | ${OVER} bytes (${OVER_KB} KB) |" >> $GITHUB_STEP_SUMMARY
+          
+          exit 1
+        fi
+    
+    - name: Upload submission artifact
+      uses: actions/upload-artifact@v3
+      if: success()
+      with:
+        name: js13k-submission
+        path: submission.zip
+        retention-days: 30
+    
+    - name: File size breakdown
+      if: always()
+      run: |
+        echo "## File Size Breakdown" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| File | Size |" >> $GITHUB_STEP_SUMMARY
+        echo "|------|------|" >> $GITHUB_STEP_SUMMARY
+        echo "| index.html | $(stat -c%s index.html) bytes |" >> $GITHUB_STEP_SUMMARY
+        echo "| g.wasm | $(stat -c%s g.wasm) bytes |" >> $GITHUB_STEP_SUMMARY
+        echo "| submission.zip | $(stat -c%s submission.zip) bytes |" >> $GITHUB_STEP_SUMMARY
