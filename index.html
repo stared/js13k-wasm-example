@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>JS13K</title>
+<style>
+body{margin:0;padding:0;background:#000;overflow:hidden}
+canvas{image-rendering:pixelated}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+(async()=>{
+let k=0;
+const r=await fetch('g.wasm');
+const {instance:{exports:e}}=await WebAssembly.instantiate(await r.arrayBuffer());
+e.init();
+const c=document.getElementById('c');
+c.width=400;
+c.height=300;
+const ctx=c.getContext('2d');
+const d=ctx.createImageData(400,300);
+document.onkeydown=v=>{if(v.key=='ArrowLeft')k|=1;if(v.key=='ArrowRight')k|=2;if(v.key==' ')k|=4};
+document.onkeyup=v=>{if(v.key=='ArrowLeft')k&=~1;if(v.key=='ArrowRight')k&=~2;if(v.key==' ')k&=~4};
+const l=()=>{
+e.tick(k);
+const p=e.render();
+const m=new Uint8Array(e.memory.buffer,p,480000);
+for(let i=0;i<480000;i++)d.data[i]=m[i];
+ctx.putImageData(d,0,0);
+requestAnimationFrame(l);
+};
+l();
+})();
+</script>
+</body>
+</html>

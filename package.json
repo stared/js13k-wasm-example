@@ -1,0 +1,9 @@
+{
+  "name": "js13k-invaders",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "./build.sh",
+    "check-size": "./check-size.sh",
+    "serve": "python3 -m http.server 8000"
+  }
+}
