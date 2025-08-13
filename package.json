@@ -2,8 +2,12 @@
   "name": "js13k-invaders",
   "version": "1.0.0",
   "scripts": {
-    "build": "./build.sh",
-    "check-size": "./check-size.sh",
-    "serve": "python3 -m http.server 8000"
+    "build": "cargo build --release --target wasm32-unknown-unknown && cp target/wasm32-unknown-unknown/release/js13k_invaders.wasm g.wasm",
+    "build:opt": "pnpm build && wasm-opt -Oz g.wasm -o g.wasm",
+    "size": "pnpm build && zip -9 submission.zip index.html g.wasm && stat -f%z submission.zip || stat -c%s submission.zip",
+    "serve": "pnpx serve ."
+  },
+  "devDependencies": {
+    "serve": "^14.2.0"
   }
 }

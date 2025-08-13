@@ -10,22 +10,23 @@ A tiny Space Invaders game written in Rust and compiled to WASM for the js13k co
 ## Build
 
 ```bash
-./build.sh
+pnpm build        # Basic build
+pnpm build:opt    # Build with wasm-opt optimization
 ```
 
 ## Check Size
 
 ```bash
-./check-size.sh
+pnpm size         # Returns submission size in bytes
 ```
 
 ## Play
 
 ```bash
-python3 -m http.server 8000
+pnpm serve        # Serves at http://localhost:3000
 ```
 
-Then open http://localhost:8000 in your browser.
+Then open http://localhost:3000 in your browser.
 
 ## Controls
 

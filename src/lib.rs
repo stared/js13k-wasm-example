@@ -3,6 +3,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 use alloc::vec;
 use core::panic::PanicInfo;
+use core::clone::Clone;
 
 #[panic_handler]
 fn panic(_: &PanicInfo) -> ! {
@@ -156,22 +157,23 @@ impl Game {
         }
 
         // Draw enemies
-        for enemy in &self.enemies {
-            if enemy.2 {
-                self.draw_rect(enemy.0 - 15, enemy.1 - 8, 30, 16, 255, 0, 0);
-            }
+        let enemies_to_draw: Vec<_> = self.enemies.iter().filter(|e| e.2).cloned().collect();
+        for enemy in enemies_to_draw {
+            self.draw_rect(enemy.0 - 15, enemy.1 - 8, 30, 16, 255, 0, 0);
         }
 
         // Draw player
         self.draw_rect(self.player_x - 15, HEIGHT as i32 - 25, 30, 20, 0, 255, 0);
 
         // Draw bullets
-        for bullet in &self.bullets {
+        let bullets_to_draw = self.bullets.clone();
+        for bullet in bullets_to_draw {
             self.draw_rect(bullet.0 - 2, bullet.1 - 4, 4, 8, 255, 255, 0);
         }
 
         // Draw enemy bullets
-        for bullet in &self.enemy_bullets {
+        let enemy_bullets_to_draw = self.enemy_bullets.clone();
+        for bullet in enemy_bullets_to_draw {
             self.draw_rect(bullet.0 - 2, bullet.1 - 4, 4, 8, 255, 0, 255);
         }
 
